@@ -1,0 +1,66 @@
+CREATE TABLE silver.dim_customer (
+    Customer_ID VARCHAR(20) PRIMARY KEY,
+    Policy_Holder_Name VARCHAR(200),
+    Gender VARCHAR(20),
+    Age_at_Entry INT,
+    Current_Age INT,
+    Occupation VARCHAR(200),
+    Smoker_Status VARCHAR(50),
+    Medical_Exam_Required VARCHAR(10),
+    Nationality VARCHAR(100),
+    Township VARCHAR(100)
+);
+
+
+
+CREATE TABLE silver.dim_agent (
+    Agent_Code VARCHAR(20) PRIMARY KEY,
+    Sales_Agent VARCHAR(200),
+    Agent_Mail VARCHAR(200),
+    Township VARCHAR(100)
+);
+
+
+CREATE TABLE silver.dim_policy_plan (
+    Policy_Name VARCHAR(200),
+    Policy_Code VARCHAR(50) PRIMARY KEY,
+    Business_Code VARCHAR(50)
+);
+
+
+CREATE TABLE silver.dim_policy_type (
+    Policy_Type_Code VARCHAR(20) PRIMARY KEY,
+    Policy_Type VARCHAR(100)
+);
+
+
+CREATE TABLE silver.dim_regional_manager (
+    Regional_Manager_ID VARCHAR(20) PRIMARY KEY,
+    Regional_Manager_Name VARCHAR(200),
+    Mail VARCHAR(200),
+    Region VARCHAR(100),
+    States_Covered VARCHAR(500)
+);
+
+CREATE TABLE silver.fact_insurance_policy (
+    Policy_Number VARCHAR(50) ,
+    Start_Date DATE,
+    Last_Paid_Date DATE,
+    Tenure_Years INT,
+    Date_of_Purchase DATE,
+    Customer_ID VARCHAR(20),
+    Sum_Assured_Amount DECIMAL(18,2),
+    Premium_Amount DECIMAL(18,2),
+    Payment_Frequency VARCHAR(50),
+    Loan_Eligible VARCHAR(10),
+    Loan_Amount_Allowed DECIMAL(18,2),
+    Underwriting_Expenses DECIMAL(18,2),
+    Sales_Agent_Code VARCHAR(20),
+    Policy_Anniversary_Date DATE,
+    Claim_ID VARCHAR(50),
+    Policy_Type_Code VARCHAR(20),
+    Policy_Code VARCHAR(50),
+    Policy_Status VARCHAR(50),
+    Township VARCHAR(100),
+    RM_ID VARCHAR(20)
+);
