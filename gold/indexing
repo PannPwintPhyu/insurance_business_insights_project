@@ -1,0 +1,11 @@
+CREATE CLUSTERED COLUMNSTORE INDEX CCI_Fact_Insurance
+ON gold.fact_insurance_policy;
+
+CREATE NONCLUSTERED INDEX IX_dim_customer_Township
+ON gold.dim_customer (Township);
+
+CREATE NONCLUSTERED INDEX IX_fact_CustomerID
+ON gold.fact_insurance_policy (Customer_ID);
+
+CREATE NONCLUSTERED INDEX IX_fact_AgentCode
+ON gold.fact_insurance_policy (Sales_Agent_Code);
