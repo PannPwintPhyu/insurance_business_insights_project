@@ -58,7 +58,7 @@ This approach keeps the solution efficient while demonstrating strong data wareh
 
 ---
 
-## 🥈 **Silver Layer — Clean Staging**
+## 🥈 **Silver Layer _ Clean Staging**
 
 The Silver layer stores clean, validated tables loaded directly from the data source.
 
@@ -77,7 +77,7 @@ The Silver layer stores clean, validated tables loaded directly from the data so
 * `silver.dim_policy_type`
 * `silver.dim_regional_manager`
 * `silver.fact_insurance_policy`
-* `silver.load_silver_insurance` *(automated loader)*
+* `silver.load_silver_insurance` (orchestration stored procedure)
 
 The ETL process:
 
@@ -87,7 +87,7 @@ The ETL process:
 
 ---
 
-## 🥇 **Gold Layer — Business Logic + Star Schema**
+## 🥇 **Gold Layer _ Business Logic + Star Schema**
 
 The Gold layer applies all rules required to calculate policy KPIs.
 
@@ -117,7 +117,7 @@ This layer forms a clean **star schema** optimized for Power BI.
 
 # 📊 Power BI Analytics Workflow
 
-Power BI connects directly to the Gold layer to generate an interactive insurance insights dashboard.
+Power BI consumes the Gold layer fact and dimension tables in Import Mode, enabling high-performance analytics on top of a star-schema model.
 
 ### Main Report Areas:
 
