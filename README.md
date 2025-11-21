@@ -14,7 +14,7 @@ This project showcases my practical BI skillset across data modeling, ETL design
 
 ## 📊 Dashboard Preview
 
-*(Insert images here)*
+<table> <tr> <td><img src="https://github.com/PannPwintPhyu/insurance_business_insights_report/blob/main/assets/1_Dashboard.png" alt="Dashboard" /></td> <td><img src="https://github.com/PannPwintPhyu/insurance_business_insights_report/blob/main/assets/2_Performance_Metrics.png" alt="Performance Metrics" /></td> <td><img src="https://github.com/PannPwintPhyu/insurance_business_insights_report/blob/main/assets/3_Customer_Insights.png" alt="Customer Insights" /></td> </tr> <tr> <td><strong>Main Dashboard</strong></td> <td><strong>Performance Metrics</strong></td> <td><strong>Customer Insights</strong></td> </tr> <tr> <td><img src="https://github.com/PannPwintPhyu/insurance_business_insights_report/blob/main/assets/4_RM_vs_Agent.png" alt="RM vs Agent" /></td> <td><img src="https://github.com/PannPwintPhyu/insurance_business_insights_report/blob/main/assets/5_KeyDrivers.png" alt="Key Drivers" /></td> <td><img src="https://github.com/PannPwintPhyu/insurance_business_insights_report/blob/main/assets/6_Record.png" alt="Record View" /></td> </tr> <tr> <td><strong>RM vs Agent</strong></td> <td><strong>Key Drivers</strong></td> <td><strong>Record View</strong></td> </tr> </table>
 
 * **Main Dashboard**
 * **Customer Insights**
