@@ -1,5 +1,5 @@
-# insurance_business_insights_report
-Welcome to the **Insurance Business Insights** project 🚀   End-to-end SQL + Power BI analytics solution designed to transform operational insurance data into actionable business insights.
+# insurance_business_insights
+🚀 Welcome to the **Insurance Business Insights** project   
 
 This project showcases my practical BI skillset across data modeling, ETL design, business logic implementation, and storytelling using an optimized analytical data warehouse.
 
@@ -177,11 +177,4 @@ This project is built as a professional **BI/Analytics portfolio** piece to demo
 
 ---
 
-# ⭐ GitHub Stats (Auto-updates)
 
-```md
-![GitHub Repo Stars](https://img.shields.io/github/stars/PannPwintPhyu/Superstore-Analytics-Dashboard?style=for-the-badge)
-![GitHub Forks](https://img.shields.io/github/forks/PannPwintPhyu/Superstore-Analytics-Dashboard?style=for-the-badge)
-![GitHub Last Commit](https://img.shields.io/github/last-commit/PannPwintPhyu/Superstore-Analytics-Dashboard?style=for-the-badge)
-![GitHub Issues](https://img.shields.io/github/issues/PannPwintPhyu/Superstore-Analytics-Dashboard?style=for-the-badge)
-```
