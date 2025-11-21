@@ -1,0 +1,180 @@
+CREATE OR ALTER VIEW gold.vw_insurance_policy_enriched AS
+WITH base AS (
+    SELECT
+        f.*,
+        pp.Policy_Name,
+        pt.Policy_Type,
+
+        ----------------------------------------------------------------------
+        -- Annual Premium (DECIMAL)
+        ----------------------------------------------------------------------
+        CAST(
+            CASE 
+                WHEN f.Payment_Frequency = 'Annually'      THEN f.Premium_Amount
+                WHEN f.Payment_Frequency = 'Half Yearly'   THEN f.Premium_Amount * 2
+                WHEN f.Payment_Frequency = 'Quarterly'     THEN f.Premium_Amount * 4
+                WHEN f.Payment_Frequency = 'Monthly'       THEN f.Premium_Amount * 12
+                ELSE NULL
+            END AS DECIMAL(18,6)
+        ) AS AnnualPremium,
+
+        ----------------------------------------------------------------------
+        -- Payment Duration (years)
+        ----------------------------------------------------------------------
+        DATEDIFF(YEAR, f.Start_Date, f.Last_Paid_Date) AS PaymentDuration,
+
+        ----------------------------------------------------------------------
+        -- Tenure Date
+        ----------------------------------------------------------------------
+        DATEADD(MONTH, f.Tenure_Years * 12, f.Start_Date) AS TenureDate
+
+    FROM silver.fact_insurance_policy f
+    LEFT JOIN silver.dim_policy_plan  pp ON f.Policy_Code = pp.Policy_Code
+    LEFT JOIN silver.dim_policy_type  pt ON f.Policy_Type_Code = pt.Policy_Type_Code
+),
+
+
+return_rate AS (
+    SELECT
+        b.*,
+
+        ----------------------------------------------------------------------
+        -- Return Rate (DECIMAL)
+        ----------------------------------------------------------------------
+        CAST(
+            CASE
+                -- SPECIAL PLAN RULE
+                WHEN b.Policy_Name IN (
+                    'Future Assure Plan','Retire Secure','Smart Term Protect',
+                    'Guaranteed Wealth-Builder','Child Education Plus','Jeevan Suraksha',
+                    'Income Protection Plan','Whole Life Shield','ULIP Growth Plan',
+                    'Life Growth Advantage'
+                )
+                AND b.AnnualPremium < 40000 
+                AND b.Tenure_Years <= 8
+                    THEN 0.08
+
+                -- PREMIUM < 40,000
+                WHEN b.AnnualPremium < 40000 AND b.Tenure_Years = 8  THEN 0.03
+                WHEN b.AnnualPremium < 40000 AND b.Tenure_Years = 10 THEN 0.04
+                WHEN b.AnnualPremium < 40000 AND b.Tenure_Years = 12 THEN 0.045
+                WHEN b.AnnualPremium < 40000 AND b.Tenure_Years = 15 THEN 0.05
+                WHEN b.AnnualPremium < 40000 AND b.Tenure_Years = 20 THEN 0.055
+                WHEN b.AnnualPremium < 40000 AND b.Tenure_Years = 22 THEN 0.06
+                WHEN b.AnnualPremium < 40000 AND b.Tenure_Years = 25 THEN 0.065
+                WHEN b.AnnualPremium < 40000 AND b.Tenure_Years = 30 THEN 0.08
+
+                -- PREMIUM 40k – 80k
+                WHEN b.AnnualPremium BETWEEN 40000 AND 79999 AND b.Tenure_Years = 10 THEN 0.05
+                WHEN b.AnnualPremium BETWEEN 40000 AND 79999 AND b.Tenure_Years = 12 THEN 0.06
+                WHEN b.AnnualPremium BETWEEN 40000 AND 79999 AND b.Tenure_Years = 15 THEN 0.07
+                WHEN b.AnnualPremium BETWEEN 40000 AND 79999 AND b.Tenure_Years = 20 THEN 0.075
+                WHEN b.AnnualPremium BETWEEN 40000 AND 79999 AND b.Tenure_Years = 22 THEN 0.08
+                WHEN b.AnnualPremium BETWEEN 40000 AND 79999 AND b.Tenure_Years = 25 THEN 0.085
+                WHEN b.AnnualPremium BETWEEN 40000 AND 79999 AND b.Tenure_Years = 30 THEN 0.10
+
+                -- PREMIUM ≥ 80k
+                WHEN b.AnnualPremium >= 80000 AND b.Tenure_Years = 10 THEN 0.08
+                WHEN b.AnnualPremium >= 80000 AND b.Tenure_Years = 12 THEN 0.085
+                WHEN b.AnnualPremium >= 80000 AND b.Tenure_Years = 15 THEN 0.09
+                WHEN b.AnnualPremium >= 80000 AND b.Tenure_Years = 20 THEN 0.095
+                WHEN b.AnnualPremium >= 80000 AND b.Tenure_Years = 22 THEN 0.10
+                WHEN b.AnnualPremium >= 80000 AND b.Tenure_Years = 25 THEN 0.15
+                WHEN b.AnnualPremium >= 80000 AND b.Tenure_Years = 30 THEN 0.20
+
+                ELSE 0
+            END AS DECIMAL(18,6)
+        ) AS ReturnRate
+    FROM base b
+)
+
+
+SELECT
+    r.*,
+
+    ----------------------------------------------------------------------
+    -- Total Premium Amount
+    ----------------------------------------------------------------------
+    ROUND((r.AnnualPremium * r.Tenure_Years), 6) AS Total_Premium_Amount,
+
+    ----------------------------------------------------------------------
+    -- Total Premium Paid
+    ----------------------------------------------------------------------
+    ROUND((r.PaymentDuration * r.AnnualPremium), 6) AS Total_Premium_Paid,
+
+    ----------------------------------------------------------------------
+    -- Total Premium Payable
+    ----------------------------------------------------------------------
+    ROUND(
+        (r.AnnualPremium * r.Tenure_Years) -
+        (r.PaymentDuration * r.AnnualPremium), 
+        6
+    ) AS Total_Premium_Payable,
+
+    ----------------------------------------------------------------------
+    -- Maturity Amount (decimal precision)
+    ----------------------------------------------------------------------
+    CASE 
+        WHEN r.Policy_Status <> 'ACTIVE' THEN 0
+        ELSE ROUND(
+                (r.AnnualPremium * r.Tenure_Years) * (1 + r.ReturnRate),
+                6
+             )
+    END AS Maturity_Amount,
+
+    ----------------------------------------------------------------------
+    -- Profit / Gain
+    ----------------------------------------------------------------------
+    CASE 
+        WHEN r.Policy_Status <> 'ACTIVE' THEN 0
+        ELSE ROUND(
+            ((r.AnnualPremium * r.Tenure_Years) * (1 + r.ReturnRate))
+            - (r.AnnualPremium * r.Tenure_Years),
+            6
+        )
+    END AS Profit_Gain,
+
+    ----------------------------------------------------------------------
+    -- Annualized ROI % = EXP((1/n)*LOG(final/invested)) - 1
+    -- (decimal safe, POWER() avoided)
+    ----------------------------------------------------------------------
+    CASE 
+        WHEN r.Tenure_Years > 0 
+             AND (r.PaymentDuration * r.AnnualPremium) > 0 
+        THEN ROUND(
+            EXP(
+                (1.0 / r.Tenure_Years) *
+                LOG(
+                    ((r.AnnualPremium * r.Tenure_Years) * (1 + r.ReturnRate))
+                    / NULLIF((r.PaymentDuration * r.AnnualPremium), 0)
+                )
+            ) - 1,
+            6
+        )
+        ELSE NULL
+    END AS Annualized_ROI_Percent,
+
+    ----------------------------------------------------------------------
+    -- Maturity Flags
+    ----------------------------------------------------------------------
+    CASE WHEN DATEDIFF(YEAR, GETDATE(), r.TenureDate) BETWEEN 0 AND 5 THEN 1 ELSE 0 END AS Matured_in_5_Years,
+    CASE WHEN DATEDIFF(YEAR, GETDATE(), r.TenureDate) BETWEEN 6 AND 10 THEN 1 ELSE 0 END AS Matured_in_10_Years,
+    CASE WHEN DATEDIFF(YEAR, GETDATE(), r.TenureDate) BETWEEN 11 AND 15 THEN 1 ELSE 0 END AS Matured_in_15_Years,
+    CASE WHEN DATEDIFF(YEAR, GETDATE(), r.TenureDate) BETWEEN 16 AND 20 THEN 1 ELSE 0 END AS Matured_in_20_Years,
+
+    ----------------------------------------------------------------------
+    -- Payment Bucket (your DAX SWITCH logic)
+    ----------------------------------------------------------------------
+    CASE 
+        WHEN DATEDIFF(YEAR, GETDATE(), r.TenureDate) BETWEEN 0 AND 5  
+            THEN 'Payable in 5 years'
+        WHEN DATEDIFF(YEAR, GETDATE(), r.TenureDate) BETWEEN 6 AND 10 
+            THEN 'Payable in 10 years'
+        WHEN DATEDIFF(YEAR, GETDATE(), r.TenureDate) BETWEEN 11 AND 15 
+            THEN 'Payable in 15 years'
+        WHEN DATEDIFF(YEAR, GETDATE(), r.TenureDate) BETWEEN 16 AND 20 
+            THEN 'Payable in 20 years'
+        ELSE 'Beyond 20 years'
+    END AS Payment_Bucket
+
+FROM return_rate r;
