@@ -1,5 +1,5 @@
-# insurance_business_insights
-🚀 Welcome to the **Insurance Business Insights** project   
+# 🚀 Welcome to the **Insurance Business Insights** project   
+
 
 This project showcases my practical BI skillset across data modeling, ETL design, business logic implementation, and storytelling using an optimized analytical data warehouse.
 
