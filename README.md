@@ -34,7 +34,6 @@ It enables business users to analyze:
 * Customer ROI & profitability
 * Policy maturity outcomes
 * Agent and regional performance
-* Product return performance
 * Customer demographics
 * Key drivers influencing premium and gain
 
@@ -50,8 +49,6 @@ The goal is to highlight:
 ---
 
 # 🏗️ Data Warehouse Architecture (Silver → Gold)
-
-### ⭐ **Short Explanation (BI Knowledge Focused)**
 
 This project adopts a **two-layer warehouse** (Silver → Gold) because the source CSV data was already clean and did not require a Bronze raw zone. The Silver layer standardizes and structures the data, while the Gold layer applies all insurance business rules, KPIs, and star-schema modeling to produce analytics-ready fact and dimension tables.
 This approach keeps the solution efficient while demonstrating strong data warehousing principles.
