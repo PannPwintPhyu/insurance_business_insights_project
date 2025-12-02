@@ -39,12 +39,12 @@ It enables business users to analyze:
 
 The goal is to highlight:
 
-* ✔️ SQL Data Warehousing
-* ✔️ Dimensional Modeling
-* ✔️ Business Logic Transformation
-* ✔️ DAX + Power BI Storytelling
-* ✔️ Real-World Insurance Metrics
-* ✔️ Efficient ETL & Data Standardization
+*  SQL Data Warehousing
+*  Dimensional Modeling
+*  Business Logic Transformation
+*  DAX + Power BI Storytelling
+*  Real-World Insurance Metrics
+*  Efficient ETL & Data Standardization
 
 ---
 
