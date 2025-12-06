@@ -1,85 +1,130 @@
-DROP TABLE IF EXISTS gold.dim_customer;
+CREATE OR ALTER PROCEDURE gold.load_gold AS
+BEGIN
+    SET NOCOUNT ON;
 
-CREATE TABLE gold.dim_customer (
-    Customer_ID NVARCHAR(50) PRIMARY KEY,
-    Policy_Holder_Name NVARCHAR(150),
-    Gender NVARCHAR(50),
-    Age_at_Entry INT,
-    Current_Age INT,
-    Occupation NVARCHAR(150),
-    Smoker_Status NVARCHAR(50),
-    Medical_Exam_Required NVARCHAR(50),
-    Nationality NVARCHAR(100),
-    Township NVARCHAR(100)
-);
+    DECLARE 
+        @start DATETIME,
+        @end DATETIME,
+        @batch_start DATETIME,
+        @batch_end DATETIME;
+
+    SET @batch_start = GETDATE();
+
+    PRINT '==============================================';
+    PRINT '           LOADING GOLD LAYER                 ';
+    PRINT '==============================================';
+
+    ---------------------------------------------------------
+    -- LOAD gold.dim_customer
+    ---------------------------------------------------------
+    PRINT '--- Loading gold.dim_customer ---';
+    TRUNCATE TABLE gold.dim_customer;
+
+    SET @start = GETDATE();
+    INSERT INTO gold.dim_customer
+    (
+        Customer_ID,
+        Policy_Holder_Name,
+        Gender,
+        Age_at_Entry,
+        Current_Age,
+        Occupation,
+        Smoker_Status,
+        Medical_Exam_Required,
+        Nationality,
+        Township
+    )
+    SELECT
+        Customer_ID,
+        Policy_Holder_Name,
+        Gender,
+        Age_at_Entry,
+        Current_Age,
+        Occupation,
+        Smoker_Status,
+        Medical_Exam_Required,
+        Nationality,
+        Township
+    FROM silver.dim_customer;
+    SET @end = GETDATE();
+
+    PRINT 'Loaded dim_customer in ' + CAST(DATEDIFF(SECOND,@start,@end) AS NVARCHAR);
 
 
-DROP TABLE IF EXISTS gold.dim_sales_agent;
+    ---------------------------------------------------------
+    -- LOAD gold.dim_sales_agent
+    ---------------------------------------------------------
+    PRINT '--- Loading gold.dim_sales_agent ---';
+    TRUNCATE TABLE gold.dim_sales_agent;
 
-CREATE TABLE gold.dim_sales_agent (
-    Agent_Code NVARCHAR(50) PRIMARY KEY,
-    Sales_Agent NVARCHAR(150),
-    Agent_Mail NVARCHAR(150),
-    Township NVARCHAR(100)
-);
+    SET @start = GETDATE();
+    INSERT INTO gold.dim_sales_agent
+    (
+        Agent_Code,
+        Sales_Agent,
+        Agent_Mail,
+        Township
+    )
+    SELECT
+        Agent_Code,
+        Sales_Agent,
+        Agent_Mail,
+        Township
+    FROM silver.dim_agent;
+    SET @end = GETDATE();
+
+    PRINT 'Loaded dim_sales_agent in ' + CAST(DATEDIFF(SECOND,@start,@end) AS NVARCHAR);
 
 
-DROP TABLE IF EXISTS gold.dim_regional_manager;
+    ---------------------------------------------------------
+    -- LOAD gold.dim_regional_manager
+    ---------------------------------------------------------
+    PRINT '--- Loading gold.dim_regional_manager ---';
+    TRUNCATE TABLE gold.dim_regional_manager;
 
-CREATE TABLE gold.dim_regional_manager (
-    Regional_Manager_ID NVARCHAR(50) PRIMARY KEY,
-    Regional_Manager_Name NVARCHAR(150),
-    Mail NVARCHAR(150),
-    Region NVARCHAR(100),
-    States_Covered NVARCHAR(200)
-);
+    SET @start = GETDATE();
+    INSERT INTO gold.dim_regional_manager
+    (
+        Regional_Manager_ID,
+        Regional_Manager_Name,
+        Mail,
+        Region,
+        States_Covered
+    )
+    SELECT
+        Regional_Manager_ID,
+        Regional_Manager_Name,
+        Mail,
+        Region,
+        States_Covered
+    FROM silver.dim_regional_manager;
+    SET @end = GETDATE();
+
+    PRINT 'Loaded dim_regional_manager in ' + CAST(DATEDIFF(SECOND,@start,@end) AS NVARCHAR);
 
 
-DROP TABLE IF EXISTS gold.fact_insurance_policy;
+    ---------------------------------------------------------
+    -- LOAD gold.fact_insurance_policy 
+    ---------------------------------------------------------
+    PRINT '--- Loading gold.fact_insurance_policy ---';
+    TRUNCATE TABLE gold.fact_insurance_policy;
 
-CREATE TABLE gold.fact_insurance_policy (
-    -- From silver.fact_insurance_policy (raw fields)
-    Policy_Number            NVARCHAR(50),
-    Start_Date               DATE,
-    Last_Paid_Date           DATE,
-    Tenure_Years             INT,
-    Date_of_Purchase         DATE,
-    Customer_ID              NVARCHAR(50),
-    Sum_Assured_Amount       DECIMAL(18,6),
-    Premium_Amount           DECIMAL(18,6),
-    Payment_Frequency        NVARCHAR(50),
-    Loan_Eligible            NVARCHAR(50),
-    Loan_Amount_Allowed      DECIMAL(18,6),
-    Underwriting_Expenses    DECIMAL(18,6),
-    Sales_Agent_Code         NVARCHAR(50),
-    Policy_Anniversary_Date  DATE,
-    Claim_ID                 NVARCHAR(50),
-    Policy_Type_Code         NVARCHAR(50),
-    Policy_Code              NVARCHAR(50),
-    Policy_Status            NVARCHAR(50),
-    Township                 NVARCHAR(100),
-    RM_ID                    NVARCHAR(50),
+    SET @start = GETDATE();
+    INSERT INTO gold.fact_insurance_policy
+    SELECT *
+    FROM gold.vw_insurance_policy_enriched;
+    SET @end = GETDATE();
 
-    -- Added fields from joins & calculations
-    Policy_Name              NVARCHAR(200),
-    Policy_Type              NVARCHAR(200),
+    PRINT 'Loaded fact_insurance_policy in ' + CAST(DATEDIFF(SECOND,@start,@end) AS NVARCHAR);
 
-    AnnualPremium            DECIMAL(18,6),
-    PaymentDuration          INT,
-    TenureDate               DATE,
-    ReturnRate               DECIMAL(18,6),
 
-    Total_Premium_Amount     DECIMAL(18,6),
-    Total_Premium_Paid       DECIMAL(18,6),
-    Total_Premium_Payable    DECIMAL(18,6),
-    Maturity_Amount          DECIMAL(18,6),
-    Profit_Gain              DECIMAL(18,6),
-    Annualized_ROI_Percent   DECIMAL(18,6),
-
-    Matured_in_5_Years       int,
-    Matured_in_10_Years      int,
-    Matured_in_15_Years      int,
-    Matured_in_20_Years      int,
-
-    Payment_Bucket           NVARCHAR(50)
-);
+    ---------------------------------------------------------
+    -- END
+    ---------------------------------------------------------
+    SET @batch_end = GETDATE();
+    PRINT '==============================================';
+    PRINT ' GOLD Layer Load Completed Successfully';
+    PRINT ' Total Duration: ' + CAST(DATEDIFF(SECOND,@batch_start,@batch_end) AS NVARCHAR) + ' seconds';
+    PRINT '==============================================';
+END;
+GO
