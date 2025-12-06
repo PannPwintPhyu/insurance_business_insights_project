@@ -6,7 +6,7 @@ WITH base AS (
         pt.Policy_Type,
 
         ----------------------------------------------------------------------
-        -- Annual Premium (DECIMAL)
+        -- Annual Premium 
         ----------------------------------------------------------------------
         CAST(
             CASE 
@@ -39,7 +39,7 @@ return_rate AS (
         b.*,
 
         ----------------------------------------------------------------------
-        -- Return Rate (DECIMAL)
+        -- Return Rate 
         ----------------------------------------------------------------------
         CAST(
             CASE
@@ -112,7 +112,7 @@ SELECT
     ) AS Total_Premium_Payable,
 
     ----------------------------------------------------------------------
-    -- Maturity Amount (decimal precision)
+    -- Maturity Amount 
     ----------------------------------------------------------------------
     CASE 
         WHEN r.Policy_Status <> 'ACTIVE' THEN 0
@@ -163,7 +163,7 @@ SELECT
     CASE WHEN DATEDIFF(YEAR, GETDATE(), r.TenureDate) BETWEEN 16 AND 20 THEN 1 ELSE 0 END AS Matured_in_20_Years,
 
     ----------------------------------------------------------------------
-    -- Payment Bucket (your DAX SWITCH logic)
+    -- Payment Bucket
     ----------------------------------------------------------------------
     CASE 
         WHEN DATEDIFF(YEAR, GETDATE(), r.TenureDate) BETWEEN 0 AND 5  
